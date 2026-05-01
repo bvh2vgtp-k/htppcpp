@@ -1,7 +1,7 @@
 #include <asm-generic/socket.h>
 #include <cstdint>
 
-#include <net/net.hpp> //TODO: ВОТ ЭТО ДЕЛО ПОТОМ ПОМЕНЧТЬ НАДО
+#include <net/net.hpp> 
 #include <error/error.hpp>
 
 #include <print>

@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <sys/socket.h>
 #include <vector>
 #include <string_view>
 #include <unistd.h>
@@ -23,13 +24,20 @@ public:
 
     void close();
 
-    std::string_view get_addr() const;
+    std::string_view get_addr() const {
+		return m_clientAddr;
+	}
+    uint16_t get_port() const {
+        return m_port;
+    }
 
 private:
     int m_fd = -1;
     int m_clientfd = -1;
     uint16_t m_port = 0;
-    std::string m_endpoint = {}; //maybe
+    std::string m_clientAddr = {}; //maybe
+    
+    std::string _ntop(const struct sockaddr_in *sa) const;
 };
 }
 /*

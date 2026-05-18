@@ -6,7 +6,6 @@
 
 #include <print>
 #include <string>
-#include <string_view>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -40,8 +39,9 @@ namespace net {
 	void Listener::listen(){
 		struct sockaddr_in addr;
 		socklen_t addr_len = sizeof(addr);
+		char s[INET_ADDRSTRLEN];
 		addr.sin_family = AF_INET;
-		addr.sin_addr.s_addr = INADDR_ANY;
+		addr.sin_addr.s_addr = INADDR_ANY; //INADDR_ANY долэен быть 0.0.0.0
 		addr.sin_port = htons(m_port);
 
 		if(bind(m_fd, (struct sockaddr*)&addr, addr_len) != 0){
@@ -51,9 +51,10 @@ namespace net {
 		if(::listen(m_fd, SOMAXCONN) != 0){
 			throw err::socket_error{"listen: "};
 		}
+		auto host = _ntop(&addr);
 
 		//TODO: переделать под нормалоные enp адресс, можно исполььзовать ifчётоам в интернете ест
-		std::println("listening on: localhost:{}", m_port);
+		std::println("listening on: {}:{}", host, m_port);
 	}
 
 	void Listener::accept(){
@@ -72,8 +73,8 @@ namespace net {
 		}
 
 		// это ужас просто 
-		const char* dst = inet_ntop(AF_INET, (struct sockaddr*)&their_addr.sin_addr, s, sizeof(s));
-		m_endpoint = dst;
+		//const char* dst = inet_ntop(AF_INET, (struct sockaddr*)&their_addr.sin_addr, s, INET_ADDRSTRLEN);
+		m_clientAddr = _ntop(&their_addr);
 		std::println("got connection from: {}", get_addr());
 	}
 
@@ -90,9 +91,12 @@ namespace net {
 		std::println("sended: {} bytes", size);
 	}
 
-    std::string_view Listener::get_addr() const {
-		return m_endpoint;
+	std::string Listener::_ntop(const struct sockaddr_in* sa) const {
+		char s[INET_ADDRSTRLEN];
+		const char* dst = inet_ntop(AF_INET, &sa->sin_addr.s_addr, s, INET_ADDRSTRLEN);
+		return std::string(dst);
 	}
+
 
 
 } //NAMESPACE NET

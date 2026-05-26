@@ -72,8 +72,6 @@ namespace net {
 			throw err::socket_error{"accept: "};
 		}
 
-		// это ужас просто 
-		//const char* dst = inet_ntop(AF_INET, (struct sockaddr*)&their_addr.sin_addr, s, INET_ADDRSTRLEN);
 		m_clientAddr = _ntop(&their_addr);
 		std::println("got connection from: {}", get_addr());
 	}

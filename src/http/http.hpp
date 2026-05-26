@@ -1,3 +1,10 @@
 
-/* TODO: https://www.rfc-editor.org/rfc/rfc9112.html */
+/* TODO: https://www.rfc-editor.org/rfc/rfc9112.html 
+   над будет прис оздании сервера ещё pid его выводить там и тд
+ */
+
+class Http {
+	/*НУ хз, такто по идее главная функция должа ьыть как в го
+	 * listenAndServe чёто такое, но вот чё ещё))*/
+};
 

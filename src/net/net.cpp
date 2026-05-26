@@ -73,7 +73,6 @@ namespace net {
 		}
 
 		m_clientAddr = _ntop(&their_addr);
-		std::println("got connection from: {}", get_addr());
 	}
 
 	void Listener::recv(std::vector<std::byte>& buff){ //ПЕРЕДЕЛАТЬ МБ ПОТОМ С ВОЗВРАЩЗАЮЩИМ ЗЩНАЧЕНИЕМ

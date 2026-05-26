@@ -10,6 +10,7 @@ int main(){
 
     for(;;){
         srv.accept();
+        std::println("got connection form {}", srv.get_addr());
         srv.send("hello");
     }
     } catch(std::exception& e){

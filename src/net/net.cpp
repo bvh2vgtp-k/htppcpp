@@ -10,7 +10,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <vector>
+#include <utility>
 
 
 //TODO: надо нормально потом мож обрабатывать ато чё эот
@@ -29,11 +29,48 @@ namespace net {
 	}
 
 	Listener::~Listener(){
-		close();
+		if(m_fd != -1){
+			::close(m_fd);
+		}
+	}
+	
+	void Listener::moveFrom(Listener& src) noexcept{
+		m_clientAddr = std::move(src.m_clientAddr); // ну такто...
+	#if 0
+		m_fd = src.m_fd;
+		m_clientfd = src.m_clientfd; // ??? пока так 
+		m_port = src.m_port;
+
+		src.m_fd = -1;
+		src.m_clientfd = -1;
+		src.m_port = 0;
+		src.m_clientAddr.clear();
+	#endif
+		m_fd = std::exchange(src.m_fd, -1);
+		m_clientfd = std::exchange(src.m_clientfd, -1);
+		m_port = std::exchange(src.m_port, 0);
 	}
 
-	void Listener::close(){
-		::close(m_fd);
+	Listener::Listener(Listener&& src) noexcept{
+		moveFrom(src);
+	}
+
+	Listener& Listener::operator=(Listener&& rhs) noexcept {
+		if(this == &rhs){
+			return *this;
+		}
+		
+		m_fd = m_clientfd = -1;
+		m_port = 0;
+		m_clientAddr.clear();
+		moveFrom(rhs);
+
+		return *this;
+	}
+
+	void Listener::close_client(){
+		::close(m_clientfd);
+		m_clientAddr.clear();
 	}
 
 	void Listener::listen(){
@@ -75,9 +112,17 @@ namespace net {
 		m_clientAddr = _ntop(&their_addr);
 	}
 
-	void Listener::recv(std::vector<std::byte>& buff){ //ПЕРЕДЕЛАТЬ МБ ПОТОМ С ВОЗВРАЩЗАЮЩИМ ЗЩНАЧЕНИЕМ
-		auto size = ::recv(m_fd, buff.data(), buff.size(), 0);
-		std::println("reieved: {} bytes", size);
+	std::string Listener::recv(){
+		std::string buff;
+		/* max len около 617 мне удалось получить такчто похуй...*/
+		buff.resize(1024);
+
+		auto size = ::recv(m_clientfd, buff.data(), buff.size(), 0);
+		if(size == -1){
+			throw err::socket_error{"recv: "};
+		}
+		std::println("recived {} bytes", size);
+		return buff;
 	}
 
 	void Listener::send(std::string&& data){
@@ -86,6 +131,15 @@ namespace net {
 			throw err::socket_error{"send: "};
 		}
 		std::println("sended: {} bytes", size);
+	}
+
+	void Listener::send(std::string_view data){
+		auto size = ::send(m_clientfd, data.data(), data.size(), 0);
+		if(size == -1){
+			throw err::socket_error{"send: "};
+		}
+		std::println("sended: {} bytes", size);
+		
 	}
 
 	std::string Listener::_ntop(const struct sockaddr_in* sa) const {

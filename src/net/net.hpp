@@ -1,8 +1,6 @@
-#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <sys/socket.h>
-#include <vector>
 #include <string_view>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -12,17 +10,24 @@
 
 namespace net {
 
-class Listener{
+class Listener final{
 public:
     Listener(uint16_t port);
     ~Listener();
 
+    Listener(const Listener&) = delete;
+    Listener& operator=(const Listener&) = delete;
+
+    Listener(Listener&& src) noexcept;
+    Listener& operator=(Listener&& rhs) noexcept;
+
     void listen();
     void accept();
-    void recv(std::vector<std::byte>& buff);
+    [[nodiscard]] std::string recv();
     void send(std::string&& data);
+    void send(std::string_view data);
 
-    void close();
+    void close_client();
 
     std::string_view get_addr() const {
 		return m_clientAddr;
@@ -37,7 +42,8 @@ private:
     uint16_t m_port = 0;
     std::string m_clientAddr = {}; //maybe
     
-    std::string _ntop(const struct sockaddr_in *sa) const;
+    [[nodiscard]] std::string _ntop(const struct sockaddr_in *sa) const noexcept;
+    void moveFrom(Listener& src) noexcept;
 };
 }
 /*

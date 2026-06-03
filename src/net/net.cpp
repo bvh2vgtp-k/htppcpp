@@ -1,11 +1,13 @@
 #include <asm-generic/socket.h>
-#include <cstdint>
 
+#include <charconv>
 #include <net/net.hpp> 
 #include <error/error.hpp>
 
 #include <print>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -15,8 +17,9 @@
 
 //TODO: надо нормально потом мож обрабатывать ато чё эот
 namespace net {
-	Listener::Listener(uint16_t port) : m_port(port)
+	Listener::Listener(std::string host)
 	{
+		parse_addr_(host);
 		int yes = 1;
 		m_fd = socket(AF_INET, SOCK_STREAM, 0);
 		if(m_fd == -1){
@@ -78,7 +81,11 @@ namespace net {
 		socklen_t addr_len = sizeof(addr);
 		char s[INET_ADDRSTRLEN];
 		addr.sin_family = AF_INET;
-		addr.sin_addr.s_addr = INADDR_ANY; //INADDR_ANY долэен быть 0.0.0.0
+		auto err = inet_pton(AF_INET, m_hostAddr.c_str(), &(addr.sin_addr));
+		if(err != 1){ // ))))))))))
+			throw err::socket_error{"bad addr: "};
+		}
+		
 		addr.sin_port = htons(m_port);
 
 		if(bind(m_fd, (struct sockaddr*)&addr, addr_len) != 0){
@@ -88,10 +95,8 @@ namespace net {
 		if(::listen(m_fd, SOMAXCONN) != 0){
 			throw err::socket_error{"listen: "};
 		}
-		auto host = _ntop(&addr);
 
-		//TODO: переделать под нормалоные enp адресс, можно исполььзовать ifчётоам в интернете ест
-		std::println("listening on: {}:{}", host, m_port);
+		std::println("listening on: {}:{}", m_hostAddr, m_port);
 	}
 
 	void Listener::accept(){
@@ -109,7 +114,7 @@ namespace net {
 			throw err::socket_error{"accept: "};
 		}
 
-		m_clientAddr = _ntop(&their_addr);
+		m_clientAddr = ntop_(&their_addr);
 	}
 
 	std::string Listener::recv(){
@@ -125,6 +130,7 @@ namespace net {
 		return buff;
 	}
 
+//TODO: ambigous
 	void Listener::send(std::string&& data){
 		auto size = ::send(m_clientfd, data.c_str(), data.size(), 0);
 		if(size == -1){
@@ -139,15 +145,41 @@ namespace net {
 			throw err::socket_error{"send: "};
 		}
 		std::println("sended: {} bytes", size);
-		
 	}
 
-	std::string Listener::_ntop(const struct sockaddr_in* sa) const {
+	std::string Listener::ntop_(const struct sockaddr_in* sa) const noexcept {
 		char s[INET_ADDRSTRLEN];
 		const char* dst = inet_ntop(AF_INET, &sa->sin_addr.s_addr, s, INET_ADDRSTRLEN);
 		return std::string(dst);
 	}
+	
+	void Listener::parse_addr_(std::string_view addr){
+		auto colon = addr.find(':');
+		if(colon == std::string_view::npos){
+			throw std::invalid_argument("invalid address format, missing :");
+		}
+		auto host = addr.substr(0, colon);
+		if(!host.empty()){
+			m_hostAddr = host;
+		}
 
+		auto port = addr.substr(colon + 1);
+		if(port.empty()){
+			throw std::invalid_argument("invalid adress, missing port");
+		}
 
+		auto [ptr, err] = std::from_chars(port.data(), port.data() + port.size(), m_port);
+		if(err != std::errc{}){
+			if(err == std::errc::invalid_argument){
+				throw std::invalid_argument("port is not a valid number");
+			}
+			if(err == std::errc::result_out_of_range){
+				throw std::out_of_range("port value is out of range");
+			}
 
+		}
+		if(ptr != port.data() + port.size()){
+			throw std::invalid_argument("port contains trailing garbage");
+		}
+	}
 } //NAMESPACE NET

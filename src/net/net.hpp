@@ -12,7 +12,7 @@ namespace net {
 
 class Listener final{
 public:
-    Listener(uint16_t port);
+    Listener(std::string host);
     ~Listener();
 
     Listener(const Listener&) = delete;
@@ -40,40 +40,11 @@ private:
     int m_fd = -1;
     int m_clientfd = -1;
     uint16_t m_port = 0;
-    std::string m_clientAddr = {}; //maybe
+    std::string m_clientAddr = {}; // их бы такто хранить в network order чтоб удобнее было туда сюда давать а в гетере проводить в человеческий
+    std::string m_hostAddr = "0.0.0.0";
     
-    [[nodiscard]] std::string _ntop(const struct sockaddr_in *sa) const noexcept;
+    [[nodiscard]] std::string ntop_(const struct sockaddr_in *sa) const noexcept;
     void moveFrom(Listener& src) noexcept;
+    void parse_addr_(std::string_view addr);
 };
 }
-/*
-
-#include <boost/asio.hpp>
-#include <iostream>
-
-using boost::asio::ip::tcp;
-
-int main() {
-    try {
-        boost::asio::io_context io_context;
-
-        // 1. Listen on a specific port (e.g., 12345)
-        tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 12345));
-
-        std::cout << "Waiting for connections..." << std::endl;
-
-        for (;;) {
-            // 2. Create a socket for the new connection
-            tcp::socket socket(io_context);
-            // 3. Block until a client connects
-            acceptor.accept(socket);
-            
-            std::cout << "Client connected!" << std::endl;
-        }
-    } catch (std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-    return 0;
-}
-
- * */

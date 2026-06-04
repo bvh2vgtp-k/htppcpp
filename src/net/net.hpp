@@ -4,7 +4,6 @@
 #include <string_view>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <utility>
 
 
 /* TODO: https://www.rfc-editor.org/rfc/rfc9112.html */
@@ -22,12 +21,12 @@ public:
     Listener(Listener&& src) noexcept;
     Listener& operator=(Listener&& rhs) noexcept;
 
-    void listen();
-    void accept();
-    [[nodiscard]] std::string recv();
-    void send(const std::string& data);
+    auto listen() -> void;
+    auto accept() -> void;
+    [[nodiscard]] auto recv() const -> std::string;
+    auto send(const std::string& data) const -> void;
 
-    void close_client();
+    auto close_client() -> void;
 
     constexpr auto get_addr() const -> std::string_view {
 		return m_clientAddr;

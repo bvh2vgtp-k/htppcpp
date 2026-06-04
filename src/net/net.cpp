@@ -37,7 +37,7 @@ namespace net {
 		}
 	}
 	
-	void Listener::moveFrom(Listener& src) noexcept{
+	auto Listener::moveFrom(Listener& src) noexcept -> void {
 		m_clientAddr = std::move(src.m_clientAddr); // ну такто...
 		m_fd = std::exchange(src.m_fd, -1);
 		m_clientfd = std::exchange(src.m_clientfd, -1);
@@ -61,12 +61,12 @@ namespace net {
 		return *this;
 	}
 
-	void Listener::close_client(){
+	auto Listener::close_client() -> void{
 		::close(m_clientfd);
 		m_clientAddr.clear();
 	}
 
-	void Listener::listen(){
+	auto Listener::listen() -> void {
 	//TODO: есть идея по лучше
 		struct sockaddr_in addr; // <- вот это сунуть как мембер
 		socklen_t addr_len = sizeof(addr);
@@ -89,7 +89,7 @@ namespace net {
 		std::println("listening on: {}:{}", m_hostAddr, m_port);
 	}
 
-	void Listener::accept(){
+	auto Listener::accept() -> void {
 		struct sockaddr_in their_addr;
 		socklen_t sin_size = sizeof(their_addr);
 		m_clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);
@@ -106,7 +106,7 @@ namespace net {
 		m_clientAddr = ntop_(&their_addr);
 	}
 
-	std::string Listener::recv(){
+	auto Listener::recv() const -> std::string{
 		std::string buff;
 		/* max len около 617 мне удалось получить такчто похуй...*/
 		buff.resize(1024);
@@ -119,8 +119,7 @@ namespace net {
 		return buff;
 	}
 
-//TODO: ambigous
-	void Listener::send(const std::string& data){
+	auto Listener::send(const std::string& data) const -> void {
 		auto size = ::send(m_clientfd, data.c_str(), data.size(), 0);
 		if(size == -1){
 			throw err::socket_error{"send: "};
@@ -128,7 +127,7 @@ namespace net {
 		std::println("sended: {} bytes", size);
 	}
 
-	std::string Listener::ntop_(const struct sockaddr_in* sa) const noexcept {
+	auto Listener::ntop_(const struct sockaddr_in* sa) const noexcept -> std::string {
 		char s[INET_ADDRSTRLEN];
 		const char* dst = inet_ntop(AF_INET, &sa->sin_addr.s_addr, s, INET_ADDRSTRLEN);
 		return std::string(dst);

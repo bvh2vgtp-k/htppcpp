@@ -29,10 +29,10 @@ public:
 
     void close_client();
 
-    constexpr auto get_addr() ->std::string_view const {
+    constexpr auto get_addr() const -> std::string_view {
 		return m_clientAddr;
 	}
-    constexpr auto get_port() -> uint16_t const {
+    constexpr auto get_port() const -> uint16_t {
         return m_port;
     }
 

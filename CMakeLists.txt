@@ -1,14 +1,22 @@
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
-
-#subdirecotry лучше не использовать чё у мя два файла...
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 cmake_minimum_required(VERSION 3.30)
 project(
 	httpsrv
 	DESCRIPTION "Simple http 1.0 server implementation in c++"
 	LANGUAGES CXX
+)
+
+
+add_compile_options(
+  -Wall
+  -Wextra
+  -Werror
+  -Wpedantic
+  -Wno-pointer-arith
 )
 
 add_executable(httpsrv)
@@ -20,11 +28,12 @@ target_sources(httpsrv
 target_link_libraries(httpsrv
 	net
 	err
-	#http
+	http
 )
 
 
 add_library(net STATIC)
+add_library(http STATIC)
 add_library(err INTERFACE)
 
 target_sources(net
@@ -36,6 +45,16 @@ target_sources(net
 	  src/net/net.hpp
 )
 
+target_sources(http
+	PRIVATE
+	  src/http/http.cpp
+	PUBLIC
+	FILE_SET HEADERS
+	FILES
+	  src/http/http.hpp
+)
+
+
 target_sources(err
     INTERFACE
     FILE_SET HEADERS
@@ -45,12 +64,7 @@ target_sources(err
 
 target_include_directories(httpsrv PUBLIC src)
 target_include_directories(net PUBLIC src)
+target_include_directories(http PUBLIC src)
 target_include_directories(err INTERFACE src)
 
-add_compile_options(
-  -Wall
-  -Wextra
-  -Wpedantic
-  -Wno-pointer-arith
-)
 

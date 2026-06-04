@@ -39,16 +39,6 @@ namespace net {
 	
 	void Listener::moveFrom(Listener& src) noexcept{
 		m_clientAddr = std::move(src.m_clientAddr); // ну такто...
-	#if 0
-		m_fd = src.m_fd;
-		m_clientfd = src.m_clientfd; // ??? пока так 
-		m_port = src.m_port;
-
-		src.m_fd = -1;
-		src.m_clientfd = -1;
-		src.m_port = 0;
-		src.m_clientAddr.clear();
-	#endif
 		m_fd = std::exchange(src.m_fd, -1);
 		m_clientfd = std::exchange(src.m_clientfd, -1);
 		m_port = std::exchange(src.m_port, 0);
@@ -77,6 +67,7 @@ namespace net {
 	}
 
 	void Listener::listen(){
+	//TODO: есть идея по лучше
 		struct sockaddr_in addr;
 		socklen_t addr_len = sizeof(addr);
 		char s[INET_ADDRSTRLEN];
@@ -131,16 +122,8 @@ namespace net {
 	}
 
 //TODO: ambigous
-	void Listener::send(std::string&& data){
+	void Listener::send(const std::string& data){
 		auto size = ::send(m_clientfd, data.c_str(), data.size(), 0);
-		if(size == -1){
-			throw err::socket_error{"send: "};
-		}
-		std::println("sended: {} bytes", size);
-	}
-
-	void Listener::send(std::string_view data){
-		auto size = ::send(m_clientfd, data.data(), data.size(), 0);
 		if(size == -1){
 			throw err::socket_error{"send: "};
 		}
@@ -153,9 +136,9 @@ namespace net {
 		return std::string(dst);
 	}
 	
-	void Listener::parse_addr_(std::string_view addr){
+	auto Listener::parse_addr_(std::string_view addr) -> void {
 		auto colon = addr.find(':');
-		if(colon == std::string_view::npos){
+		if (colon == std::string_view::npos){
 			throw std::invalid_argument("invalid address format, missing :");
 		}
 		auto host = addr.substr(0, colon);

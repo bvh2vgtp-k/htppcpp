@@ -4,6 +4,7 @@
 #include <string_view>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <utility>
 
 
 /* TODO: https://www.rfc-editor.org/rfc/rfc9112.html */
@@ -12,7 +13,7 @@ namespace net {
 
 class Listener final{
 public:
-    Listener(std::string host);
+    explicit Listener(std::string host);
     ~Listener();
 
     Listener(const Listener&) = delete;
@@ -24,15 +25,14 @@ public:
     void listen();
     void accept();
     [[nodiscard]] std::string recv();
-    void send(std::string&& data);
-    void send(std::string_view data);
+    void send(const std::string& data);
 
     void close_client();
 
-    std::string_view get_addr() const {
+    constexpr auto get_addr() ->std::string_view const {
 		return m_clientAddr;
 	}
-    uint16_t get_port() const {
+    constexpr auto get_port() -> uint16_t const {
         return m_port;
     }
 
@@ -43,8 +43,8 @@ private:
     std::string m_clientAddr = {}; // их бы такто хранить в network order чтоб удобнее было туда сюда давать а в гетере проводить в человеческий
     std::string m_hostAddr = "0.0.0.0";
     
-    [[nodiscard]] std::string ntop_(const struct sockaddr_in *sa) const noexcept;
-    void moveFrom(Listener& src) noexcept;
-    void parse_addr_(std::string_view addr);
+    [[nodiscard]] auto ntop_(const struct sockaddr_in *sa) const noexcept -> std::string;
+    auto moveFrom(Listener& src) noexcept -> void;
+    auto parse_addr_(std::string_view addr) -> void;
 };
 }

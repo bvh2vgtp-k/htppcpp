@@ -68,9 +68,9 @@ namespace net {
 
 	void Listener::listen(){
 	//TODO: есть идея по лучше
-		struct sockaddr_in addr;
+		struct sockaddr_in addr; // <- вот это сунуть как мембер
 		socklen_t addr_len = sizeof(addr);
-		char s[INET_ADDRSTRLEN];
+		//char s[INET_ADDRSTRLEN];
 		addr.sin_family = AF_INET;
 		auto err = inet_pton(AF_INET, m_hostAddr.c_str(), &(addr.sin_addr));
 		if(err != 1){ // ))))))))))
@@ -92,7 +92,7 @@ namespace net {
 
 	void Listener::accept(){
 		struct sockaddr_in their_addr;
-		char s[INET_ADDRSTRLEN];
+		//char s[INET_ADDRSTRLEN];
 		socklen_t sin_size = sizeof(their_addr);
 		m_clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);
 		if(m_clientfd == -1){

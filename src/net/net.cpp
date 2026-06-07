@@ -15,9 +15,8 @@
 #include <utility>
 
 
-//TODO: надо нормально потом мож обрабатывать ато чё эот
 namespace net {
-	Listener::Listener(std::string host)
+	Listener::Listener(std::string_view host)
 	{
 		parse_addr_(host);
 		int yes = 1;
@@ -68,7 +67,7 @@ namespace net {
 
 	auto Listener::listen() -> void {
 	//TODO: есть идея по лучше
-		struct sockaddr_in addr; // <- вот это сунуть как мембер
+		struct sockaddr_in addr;
 		socklen_t addr_len = sizeof(addr);
 		addr.sin_family = AF_INET;
 		auto err = inet_pton(AF_INET, m_hostAddr.c_str(), &(addr.sin_addr));

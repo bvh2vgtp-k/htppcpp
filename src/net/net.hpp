@@ -12,7 +12,7 @@ namespace net {
 
 class Listener final{
 public:
-    explicit Listener(std::string host);
+    explicit Listener(std::string_view host);
     ~Listener();
 
     Listener(const Listener&) = delete;
@@ -31,17 +31,18 @@ public:
     constexpr auto get_addr() const -> std::string_view {
 		return m_clientAddr;
 	}
+
     constexpr auto get_port() const -> uint16_t {
         return m_port;
     }
 
 private:
-    int m_fd = -1;
-    int m_clientfd = -1;
+    int m_fd                    = -1;
+    int m_clientfd              = -1;
     uint16_t m_port = 0;
-    std::string m_clientAddr = {}; // их бы такто хранить в network order чтоб удобнее было туда сюда давать а в гетере проводить в человеческий
-    std::string m_hostAddr = "0.0.0.0";
-    
+    std::string m_clientAddr    = {};
+    std::string m_hostAddr      {"0.0.0.0"};
+
     [[nodiscard]] auto ntop_(const struct sockaddr_in *sa) const noexcept -> std::string;
     auto moveFrom(Listener& src) noexcept -> void;
     auto parse_addr_(std::string_view addr) -> void;

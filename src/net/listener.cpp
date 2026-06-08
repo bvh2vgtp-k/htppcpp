@@ -1,15 +1,19 @@
 #include <asm-generic/socket.h>
 
+#include <bits/types/struct_timeval.h>
 #include <charconv>
-#include <net/net.hpp> 
+#include <net/listener.hpp>
+#include <net/acceptor.hpp>
 #include <error/error.hpp>
 
+#include <optional>
 #include <print>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <system_error>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <utility>
@@ -19,13 +23,28 @@ namespace net {
 	Listener::Listener(std::string_view host)
 	{
 		parse_addr_(host);
-		int yes = 1;
+		constexpr int yes = 1;
+		struct timeval timeout;
+		timeout.tv_sec = 60;
+		timeout.tv_usec = 0;
 		m_fd = socket(AF_INET, SOCK_STREAM, 0);
 		if(m_fd == -1){
 			throw err::socket_error{"socket: "};
 		}
 
-		if(setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0){
+		if(setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
+			throw err::socket_error{"setsockopt: "};
+		}
+
+		if(setsockopt(m_fd, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes)) < 0){
+			throw err::socket_error{"setsockopt: "};
+		}
+
+		if(setsockopt(m_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0){
+			throw err::socket_error{"setsockopt: "};
+		}
+
+		if(setsockopt(m_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0){
 			throw err::socket_error{"setsockopt: "};
 		}
 	}
@@ -35,11 +54,9 @@ namespace net {
 			::close(m_fd);
 		}
 	}
-	
+
 	auto Listener::moveFrom(Listener& src) noexcept -> void {
-		m_clientAddr = std::move(src.m_clientAddr); // ну такто...
 		m_fd = std::exchange(src.m_fd, -1);
-		m_clientfd = std::exchange(src.m_clientfd, -1);
 		m_port = std::exchange(src.m_port, 0);
 	}
 
@@ -51,22 +68,15 @@ namespace net {
 		if(this == &rhs){
 			return *this;
 		}
-		
-		m_fd = m_clientfd = -1;
+
+		m_fd = -1;
 		m_port = 0;
-		m_clientAddr.clear();
 		moveFrom(rhs);
 
 		return *this;
 	}
 
-	auto Listener::close_client() -> void{
-		::close(m_clientfd);
-		m_clientAddr.clear();
-	}
-
 	auto Listener::listen() -> void {
-	//TODO: есть идея по лучше
 		struct sockaddr_in addr;
 		socklen_t addr_len = sizeof(addr);
 		addr.sin_family = AF_INET;
@@ -74,7 +84,7 @@ namespace net {
 		if(err != 1){ // ))))))))))
 			throw err::socket_error{"bad addr: "};
 		}
-		
+
 		addr.sin_port = htons(m_port);
 
 		if(bind(m_fd, (struct sockaddr*)&addr, addr_len) != 0){
@@ -88,50 +98,26 @@ namespace net {
 		std::println("listening on: {}:{}", m_hostAddr, m_port);
 	}
 
-	auto Listener::accept() -> void {
+	auto Listener::accept() -> std::optional<Acceptor>{
 		struct sockaddr_in their_addr;
 		socklen_t sin_size = sizeof(their_addr);
-		m_clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);
-		if(m_clientfd == -1){
-			/*Нормальная проверка std::error_code может сделать потом как мембер класса и тут его првоерятть
-			а модет на стеке создавать тут ипроверять тоже */
-
-			/*тут нужна нормальная обработка ошибки, так как accept() может вернуть очень многое
-			ECONNABORTED к примеру возникает когда мой пир обрубил соединение, сервер не должен умерать
-			EPERM  Firewall rules forbid connection. -- надо будет это тоже ловит и выводит ошибку ро фаервоел*/ 
+		int clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);
+		if(clientfd == -1){
+		    std::error_code ec(errno, std::generic_category());
+			if(ec == std::errc::resource_unavailable_try_again){
+			    return std::nullopt;
+			}
 			throw err::socket_error{"accept: "};
 		}
-
-		m_clientAddr = ntop_(&their_addr);
+		return Acceptor{clientfd};
+		//m_clientAddr = ntop_(&their_addr);
 	}
-
-	auto Listener::recv() const -> std::string{
-		std::string buff;
-		/* max len около 617 мне удалось получить такчто похуй...*/
-		buff.resize(1024);
-
-		auto size = ::recv(m_clientfd, buff.data(), buff.size(), 0);
-		if(size == -1){
-			throw err::socket_error{"recv: "};
-		}
-		std::println("recived {} bytes", size);
-		return buff;
-	}
-
-	auto Listener::send(const std::string& data) const -> void {
-		auto size = ::send(m_clientfd, data.c_str(), data.size(), 0);
-		if(size == -1){
-			throw err::socket_error{"send: "};
-		}
-		std::println("sended: {} bytes", size);
-	}
-
 	auto Listener::ntop_(const struct sockaddr_in* sa) const noexcept -> std::string {
 		char s[INET_ADDRSTRLEN];
 		const char* dst = inet_ntop(AF_INET, &sa->sin_addr.s_addr, s, INET_ADDRSTRLEN);
 		return std::string(dst);
 	}
-	
+
 	auto Listener::parse_addr_(std::string_view addr) -> void {
 		auto colon = addr.find(':');
 		if (colon == std::string_view::npos){

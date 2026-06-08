@@ -26,23 +26,35 @@ target_sources(httpsrv
 )
 
 target_link_libraries(httpsrv
-	net
+	listener
+    acceptor
 	err
 	http
 )
 
 
-add_library(net STATIC)
+add_library(listener STATIC)
+add_library(acceptor STATIC)
 add_library(http STATIC)
 add_library(err INTERFACE)
 
-target_sources(net
+target_sources(listener
 	PRIVATE
-	  src/net/net.cpp
+	  src/net/listener.cpp
 	PUBLIC
 	FILE_SET HEADERS
 	FILES
-	  src/net/net.hpp
+	  src/net/listener.hpp
+)
+
+
+target_sources(acceptor
+	PRIVATE
+	  src/net/acceptor.cpp
+	PUBLIC
+	FILE_SET HEADERS
+	FILES
+	  src/net/acceptor.hpp
 )
 
 target_sources(http
@@ -63,7 +75,8 @@ target_sources(err
 )
 
 target_include_directories(httpsrv PUBLIC src)
-target_include_directories(net PUBLIC src)
+target_include_directories(listener PUBLIC src)
+target_include_directories(acceptor PUBLIC src)
 target_include_directories(http PUBLIC src)
 target_include_directories(err INTERFACE src)
 

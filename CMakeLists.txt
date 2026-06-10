@@ -1,24 +1,49 @@
+cmake_minimum_required(VERSION 3.30)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-cmake_minimum_required(VERSION 3.30)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 project(
 	httpsrv
-	DESCRIPTION "Simple http 1.0 server implementation in c++"
+    DESCRIPTION "Simple HTTP/1.1 server implementation in C++"
 	LANGUAGES CXX
 )
 
+add_library(compiler_flags INTERFACE)
 
-add_compile_options(
-  -Wall
-  -Wextra
-  -Werror
-  -Wpedantic
-  -Wno-pointer-arith
+target_compile_options(compiler_flags INTERFACE
+    -Wall
+    -Wextra
+    -Wshadow
+    -Werror
+    -Wpedantic
+    -Wno-pointer-arith
 )
 
+target_compile_options(compiler_flags INTERFACE
+    $<$<CONFIG:Debug>:
+        -g
+        -fsanitize=undefined,address
+    >
+)
+
+target_link_options(compiler_flags INTERFACE
+    $<$<CONFIG:Debug>:
+        -fsanitize=undefined,address
+    >
+)
+
+target_compile_options(compiler_flags INTERFACE
+    $<$<CONFIG:Release>:
+        -O3
+    >
+)
 add_executable(httpsrv)
 target_sources(httpsrv
 	PRIVATE
@@ -26,10 +51,12 @@ target_sources(httpsrv
 )
 
 target_link_libraries(httpsrv
-	listener
-    acceptor
-	err
-	http
+    PRIVATE
+        compiler_flags
+        listener
+        acceptor
+        err
+        http
 )
 
 
@@ -46,6 +73,7 @@ target_sources(listener
 	FILES
 	  src/net/listener.hpp
 )
+target_link_libraries(listener PRIVATE compiler_flags)
 
 
 target_sources(acceptor
@@ -56,6 +84,7 @@ target_sources(acceptor
 	FILES
 	  src/net/acceptor.hpp
 )
+target_link_libraries(acceptor PRIVATE compiler_flags)
 
 target_sources(http
 	PRIVATE
@@ -65,6 +94,7 @@ target_sources(http
 	FILES
 	  src/http/http.hpp
 )
+target_link_libraries(http PRIVATE compiler_flags)
 
 
 target_sources(err
@@ -73,11 +103,10 @@ target_sources(err
     FILES
       src/error/error.hpp
 )
+target_link_libraries(err INTERFACE compiler_flags)
 
 target_include_directories(httpsrv PUBLIC src)
 target_include_directories(listener PUBLIC src)
 target_include_directories(acceptor PUBLIC src)
 target_include_directories(http PUBLIC src)
 target_include_directories(err INTERFACE src)
-
-

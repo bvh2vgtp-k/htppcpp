@@ -42,7 +42,6 @@ private:
     std::string m_hostAddr      {"0.0.0.0"};
 
     [[nodiscard]] auto ntop_(const struct sockaddr_in *sa) const noexcept -> std::string;
-    auto moveFrom(Listener& src) -> void;
     auto parse_addr_(std::string_view addr) -> void;
 };
 

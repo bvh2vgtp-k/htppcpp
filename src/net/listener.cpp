@@ -55,14 +55,10 @@ namespace net {
 		}
 	}
 
-	auto Listener::moveFrom(Listener& src) -> void {
+	Listener::Listener(Listener&& src) {
 		m_fd = std::exchange(src.m_fd, -1);
 		m_port = std::exchange(src.m_port, 0);
 		m_hostAddr = std::move(src.m_hostAddr);
-	}
-
-	Listener::Listener(Listener&& src) {
-		moveFrom(src);
 	}
 
 	Listener& Listener::operator=(Listener&& rhs) {
@@ -70,9 +66,11 @@ namespace net {
 			return *this;
 		}
 
-		m_fd = -1;
-		m_port = 0;
-		moveFrom(rhs);
+		Listener tmp{std::move(rhs)};
+
+		std::swap(m_fd, tmp.m_fd);
+		std::swap(m_port, tmp.m_port);
+		std::swap(m_hostAddr, tmp.m_hostAddr);
 
 		return *this;
 	}

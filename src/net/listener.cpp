@@ -55,16 +55,17 @@ namespace net {
 		}
 	}
 
-	auto Listener::moveFrom(Listener& src) noexcept -> void {
+	auto Listener::moveFrom(Listener& src) -> void {
 		m_fd = std::exchange(src.m_fd, -1);
 		m_port = std::exchange(src.m_port, 0);
+		m_hostAddr = std::move(src.m_hostAddr);
 	}
 
-	Listener::Listener(Listener&& src) noexcept{
+	Listener::Listener(Listener&& src) {
 		moveFrom(src);
 	}
 
-	Listener& Listener::operator=(Listener&& rhs) noexcept {
+	Listener& Listener::operator=(Listener&& rhs) {
 		if(this == &rhs){
 			return *this;
 		}
@@ -109,13 +110,7 @@ namespace net {
 			}
 			throw err::socket_error{"accept: "};
 		}
-		return Acceptor{clientfd};
-		//m_clientAddr = ntop_(&their_addr);
-	}
-	auto Listener::ntop_(const struct sockaddr_in* sa) const noexcept -> std::string {
-		char s[INET_ADDRSTRLEN];
-		const char* dst = inet_ntop(AF_INET, &sa->sin_addr.s_addr, s, INET_ADDRSTRLEN);
-		return std::string(dst);
+		return std::optional<Acceptor>{clientfd};
 	}
 
 	auto Listener::parse_addr_(std::string_view addr) -> void {

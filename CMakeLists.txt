@@ -53,10 +53,10 @@ target_sources(httpsrv
 target_link_libraries(httpsrv
     PRIVATE
         compiler_flags
+        http
         listener
         acceptor
         err
-        http
 )
 
 

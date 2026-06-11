@@ -28,11 +28,14 @@ namespace net {
 
     Acceptor& Acceptor::operator=(Acceptor&& src) noexcept {
         if(this != &src){
-            m_clientfd = std::exchange(src.m_clientfd, -1);
             if(m_clientfd != -1){
                 ::close(m_clientfd);
             }
             m_clientfd = std::exchange(src.m_clientfd, -1);
+            m_bytesStored = std::exchange(src.m_bytesStored, 0);
+            if(m_bytesStored != 0) {
+                std::move(src.m_buff.begin(), src.m_buff.begin() + m_bytesStored, m_buff.begin());
+            }
         }
         return *this;
     }

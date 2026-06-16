@@ -1,13 +1,14 @@
 #pragma once
 
-#include <string>
-#include <arpa/inet.h>
-#include <array>
 #include <netinet/in.h>
-#include <string_view>
-#include <optional>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include <string>
+#include <array>
+#include <string_view>
+#include <optional>
 
 namespace net {
     constexpr size_t MAX_BUFF_SIZE = 4096;
@@ -28,15 +29,17 @@ namespace net {
         auto send(std::string_view data) const -> void;
 
         [[nodiscard]] auto get_addrstr() const -> std::string;
-        auto get_fd() const noexcept -> int {
+        [[nodiscard]] auto get_fd() const noexcept -> int32_t {
             return m_clientfd;
         }
+
+
 
     private:
         [[nodiscard]] auto ntop_(const sockaddr* sa) const -> std::string;
 
-        int m_clientfd = -1;
-        size_t m_bytesStored = 0; //может вместо того чтобы мозшги ебать уже легче вектор использоватьь
+        int32_t m_clientfd = -1;
+        size_t m_bytesStored = 0;
         std::array<char, MAX_BUFF_SIZE> m_buff;
     };
-}
+}//NAMESPACE NET

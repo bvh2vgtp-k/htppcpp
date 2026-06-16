@@ -1,14 +1,13 @@
 #pragma once
 
-#include <cstdint>
-#include <optional>
-#include <string>
 #include <sys/socket.h>
-#include <string_view>
 #include <unistd.h>
 #include <netinet/in.h>
 
-/* TODO: https://www.rfc-editor.org/rfc/rfc9112.html */
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <string_view>
 
 namespace net {
 
@@ -44,6 +43,4 @@ private:
     [[nodiscard]] auto ntop_(const struct sockaddr_in *sa) const noexcept -> std::string;
     auto parse_addr_(std::string_view addr) -> void;
 };
-
-
-}
+} //NAMESPACE NET

@@ -1,10 +1,12 @@
-#include <error/error.hpp>
-#include <net/acceptor.hpp>
-#include <string>
-#include <string_view>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include <string>
+#include <string_view>
 #include <utility>
+
+#include <error/error.hpp>
+#include <net/acceptor.hpp>
 
 namespace net {
     Acceptor::Acceptor(int sock) : m_clientfd(sock)
@@ -45,9 +47,10 @@ namespace net {
         if(size == 0){
             return std::nullopt;
         } else if(size == -1){
+            /*Нормально обрабатыватьь вместо этого вот, потом надо будет */
             throw err::socket_error{"recv: "};
         }
-        return std::string_view(m_buff.data(), size); //TODO: непонятно чё
+        return std::string_view(m_buff.data(), size);
     }
 
     auto Acceptor::send(std::string_view data) const -> void {
@@ -62,7 +65,7 @@ namespace net {
         socklen_t len = sizeof(addr);
         int res = getpeername(m_clientfd, &addr, &len);
         if(res == -1){
-            throw err::socket_error{"getpeername: "};
+            return std::string{};
         }
         return ntop_(&addr);
     }
@@ -79,5 +82,4 @@ namespace net {
         }
         return {};
     }
-
-}
+} // NAMESPACE NET

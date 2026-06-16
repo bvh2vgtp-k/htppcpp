@@ -1,22 +1,22 @@
 #include <asm-generic/socket.h>
-
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 #include <bits/types/struct_timeval.h>
-#include <charconv>
-#include <net/listener.hpp>
-#include <net/acceptor.hpp>
-#include <error/error.hpp>
 
+#include <charconv>
 #include <optional>
 #include <print>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <system_error>
-#include <unistd.h>
-#include <arpa/inet.h>
 #include <utility>
+
+#include <net/listener.hpp>
+#include <net/acceptor.hpp>
+#include <error/error.hpp>
 
 
 namespace net {
@@ -72,7 +72,6 @@ namespace net {
             m_hostAddr = std::move(src.m_hostAddr);
             return *this;
         }
-
 
         return *this;
     }

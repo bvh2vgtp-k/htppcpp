@@ -23,9 +23,7 @@ namespace http {
             net::Listener m_listenfd;
             std::unordered_map<std::string, Handler> m_routes;
 
-            constexpr auto add_route(http::Method method, std::string ) -> void;
             constexpr auto method_to_str(http::Method method) -> std::string_view;
-            auto send(net::Acceptor& peer, const Response& resposnse) const -> void;
             auto handle(net::Acceptor& peer) -> void;
             auto parse_req_str(std::string_view data) const -> std::optional<Request>;
     };

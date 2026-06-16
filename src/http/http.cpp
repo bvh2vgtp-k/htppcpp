@@ -1,20 +1,19 @@
+#include <cassert>
 #include <charconv>
-#include <http/http.hpp>
+#include <optional>
 #include <print>
+#include <stdexcept>
+#include <string>
 #include <string_view>
+
+#include <http/http.hpp>
+#include <http/types.hpp>
+#include <net/acceptor.hpp>
 
 namespace http {
 
-    Server::Server(std::string_view host) : m_conn(host)
-    {
-        std::println("Server started with pid [{}]", getpid());
-    }
-
-    Server::~Server(){
-        std::println("Sever stopped");
-    }
-
     auto Server::run() -> void {
+        #if 0
         std::string respone =
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/plain; charset=utf-8\r\n"
@@ -37,36 +36,65 @@ namespace http {
             "HTTP/1.1 404 Not found\r\n";
             //"Content-Length: 0\r\n"
             //"\r\n";
-        m_conn.listen();
+        #endif
+        m_listenfd.listen();
         for(;;){
-            auto peer = m_conn.accept();
-            if(!peer){
-                continue;
+            auto peer = m_listenfd.accept();
+            if(peer.has_value()) {
+                //int32_t fd = peer->get_fd();
+                std::println("got connection from: {}", peer->get_addrstr());
+
+                handle(*peer);
             }
-            std::println("got connection from {}", peer->get_addrstr());
-            auto res = peer->recv();
-            if(!res){
-                std::println("peer {} disconnected", peer->get_addrstr());
-                continue;
+        }
+    }
+
+    auto Server::register_handler(http::Method method, std::string uri, Handler&& handler) -> void{
+        assert(!uri.empty() && uri[0] == '/' && "URI must not be empty and must start with '/'");
+        std::string key {method_to_str(method)};
+        if(!key.empty()){
+            key += uri;
+            auto [it, inserted] = m_routes.emplace(std::move(key), std::move(handler));
+            if(!inserted){
+                throw std::runtime_error("Duplicate route registration: " + key + " already exist");
             }
-            auto req = parse_req_str(*res);
-            if(!req){
-                peer->send(bad_req);
-            } else if (req->method != "GET") {
-                peer->send(not_allowed);
-            } else if (req->method == "GET" && req->uri == "/"){
-                peer->send(respone);
-            } else if(req->uri != "/"){
-                peer->send(not_found);
-            }
-            std::println("[{}]'s request: {}", peer->get_addrstr(), req->uri);
+        }
+        throw std::invalid_argument("Invalid HTTP method provided");
+    }
+
+
+    auto Server::send(net::Acceptor& peer, const Response& resposnse) const -> void{
+        peer.send(resposnse.build());
+    }
+
+    auto Server::handle(net::Acceptor& peer) -> void {
+        auto res = peer.recv();
+        if(!res){
+            std::println("peer disconected");
+            return;
+        }
+        auto req = parse_req_str(*res);
+        if(!req){
+            send(peer, Response().status(status_code::BAD_REQ));
+            return;
         }
     }
 
 
-    auto Server::parse_req_str(std::string_view data) const -> std::optional<request> {
+    constexpr auto Server::method_to_str(http::Method method) -> std::string_view{
+        switch (method) {
+            case http::Method::GET:     return "GET ";
+            case http::Method::HEAD:    return "HEAD ";
+            case http::Method::POST:    return "POST ";
+            case http::Method::PUT:     return "PUT ";
+            case http::Method::DELETE:  return "DELETE ";
+            default:                    return "";
+        }
+    }
+
+    auto Server::parse_req_str(std::string_view data) const -> std::optional<Request> {
         /*вообще можно expected возрващать с конкретным чемто*/
-        request req;
+        Request req;
 
         size_t header_end = data.find("\r\n\r\n");
         if(header_end == std::string_view::npos){

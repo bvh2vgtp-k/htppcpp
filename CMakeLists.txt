@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
@@ -62,6 +63,7 @@ target_link_libraries(httpsrv
 
 add_library(listener STATIC)
 add_library(acceptor STATIC)
+add_library(response STATIC)
 add_library(http STATIC)
 add_library(err INTERFACE)
 
@@ -86,6 +88,16 @@ target_sources(acceptor
 )
 target_link_libraries(acceptor PRIVATE compiler_flags)
 
+target_sources(response
+    PRIVATE
+      src/http/response/Response.cpp
+    PUBLIC
+    FILE_SET HEADERS
+    FILES
+      src/http/response/Response.hpp
+)
+target_link_libraries(response PRIVATE compiler_flags)
+
 target_sources(http
 	PRIVATE
 	  src/http/http.cpp
@@ -94,7 +106,7 @@ target_sources(http
 	FILES
 	  src/http/http.hpp
 )
-target_link_libraries(http PRIVATE compiler_flags)
+target_link_libraries(http PUBLIC response PRIVATE compiler_flags)
 
 
 target_sources(err
@@ -108,5 +120,6 @@ target_link_libraries(err INTERFACE compiler_flags)
 target_include_directories(httpsrv PUBLIC src)
 target_include_directories(listener PUBLIC src)
 target_include_directories(acceptor PUBLIC src)
+target_include_directories(response PUBLIC src)
 target_include_directories(http PUBLIC src)
 target_include_directories(err INTERFACE src)

@@ -5,7 +5,7 @@
 int main(){
     try {
         http::Server srv{":8080"};
-        srv.register_handler(http::Method::GET, "test", [](){
+        srv.register_handler(http::Method::GET, "/", [](){
             return http::Response()
                 .status(http::status_code::OK)
                 .type("text/plain; charset=utf-8")

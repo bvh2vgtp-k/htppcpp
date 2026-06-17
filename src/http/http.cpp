@@ -41,10 +41,26 @@ namespace http {
         for(;;){
             auto peer = m_listenfd.accept();
             if(peer.has_value()) {
-                //int32_t fd = peer->get_fd();
                 std::println("got connection from: {}", peer->get_addrstr());
+                auto raw_request = peer->recv();
+                if(raw_request.has_value()){
+                    auto request = parse_req_str(*raw_request);
+                    //WARN: Костылирование
+                    std::string method_uri = std::string{request->method} + " " + std::string{request->uri};
+                    if(m_routes.contains(method_uri)){
+                        //WARN: костылирование 2
+                        auto res = m_routes.at(method_uri)();
+                        peer->send(res);
+                    } else {
+                        peer->send(
+                            Response()
+                                .status(http::status_code::BAD_REQ)
+                                .type("text/plain; charset=utf-8")
+                                .build()
+                        );
+                    }
+                }
 
-                handle(*peer);
             }
         }
     }
@@ -58,25 +74,8 @@ namespace http {
             if(!inserted){
                 throw std::runtime_error("Duplicate route registration: " + key + " already exist");
             }
-        }
-        throw std::invalid_argument("Invalid HTTP method provided");
-    }
-
-
-    auto Server::send(net::Acceptor& peer, const Response& resposnse) const -> void{
-        peer.send(resposnse.build());
-    }
-
-    auto Server::handle(net::Acceptor& peer) -> void {
-        auto res = peer.recv();
-        if(!res){
-            std::println("peer disconected");
-            return;
-        }
-        auto req = parse_req_str(*res);
-        if(!req){
-            send(peer, Response().status(status_code::BAD_REQ));
-            return;
+        } else {
+            throw std::invalid_argument("Invalid HTTP method provided");
         }
     }
 
@@ -116,6 +115,7 @@ namespace http {
         if(space1 == std::string_view::npos){
             return std::nullopt;
         }
+        //TODO: поменять на объедеённый
         req.method = request_line.substr(0, space1);
 
         size_t space2 = data.find(' ', space1 + 1);

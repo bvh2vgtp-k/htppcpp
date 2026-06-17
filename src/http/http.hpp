@@ -13,7 +13,7 @@
 namespace http {
     class Server {
         public:
-            using Handler = std::function<std::string_view()>; //TODO: добаить в реквест приколы
+            using Handler = std::function<std::string()>; //TODO: добаить в реквест приколы
             [[nodiscard]] explicit Server(std::string_view host) : m_listenfd{host} {}
 
             auto register_handler(http::Method method, std::string uri, Handler&& fn) -> void;
@@ -24,7 +24,6 @@ namespace http {
             std::unordered_map<std::string, Handler> m_routes;
 
             constexpr auto method_to_str(http::Method method) -> std::string_view;
-            auto handle(net::Acceptor& peer) -> void;
             auto parse_req_str(std::string_view data) const -> std::optional<Request>;
     };
 }

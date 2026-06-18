@@ -1,5 +1,6 @@
 #include <cassert>
 #include <charconv>
+#include <csignal>
 #include <optional>
 #include <print>
 #include <stdexcept>
@@ -12,9 +13,18 @@
 
 namespace http {
 
+    Server::Server(std::string_view host) : m_listenfd{host} {
+        std::println("starting Server...");
+        std::signal(SIGINT, Server::sighandler);
+    }
+
+    Server::~Server() {
+        std::println("\nServer stopped");
+    }
+
     auto Server::run() -> void {
         m_listenfd.listen();
-        for(;;){
+        while(m_running == true){
             auto peer = m_listenfd.accept();
             if(peer.has_value()) {
                 std::println("got connection from: {}", peer->get_addrstr());

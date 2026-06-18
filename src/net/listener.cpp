@@ -104,7 +104,7 @@ namespace net {
         int clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);
         if(clientfd == -1){
             std::error_code ec(errno, std::generic_category());
-            if(ec == std::errc::resource_unavailable_try_again){
+            if(ec == std::errc::resource_unavailable_try_again || ec == std::errc::interrupted){
                 return std::nullopt;
             }
             throw err::socket_error{"accept: "};

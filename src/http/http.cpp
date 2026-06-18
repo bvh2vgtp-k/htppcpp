@@ -13,30 +13,6 @@
 namespace http {
 
     auto Server::run() -> void {
-        #if 0
-        std::string respone =
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain; charset=utf-8\r\n"
-            "Content-Length: 11\r\n"
-            "Connection: close\r\n"
-            "\r\n"
-            "Hello World";
-        std::string bad_req =
-            "HTTP/1.1 400 Bad Request\r\n"
-            "Content-Length: 0\r\n"
-            "Connection: close\r\n";
-
-        std::string not_allowed =
-            "HTTP/1.1 405 Method Not Allowed\r\n"
-            "Content-Length: 0\r\n"
-            "\r\n"
-            "Allow: GET";
-
-        std::string not_found =
-            "HTTP/1.1 404 Not found\r\n";
-            //"Content-Length: 0\r\n"
-            //"\r\n";
-        #endif
         m_listenfd.listen();
         for(;;){
             auto peer = m_listenfd.accept();

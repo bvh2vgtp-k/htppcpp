@@ -22,8 +22,7 @@ namespace http {
     };
 
     struct Request {
-        std::string_view method; //TODO: вот это объеденить
-        std::string_view uri;
+        std::string_view method_uri;
         std::string_view ver;
         std::unordered_map<std::string_view, std::string_view> headers;
         std::string_view body;

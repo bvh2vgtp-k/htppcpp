@@ -32,10 +32,10 @@ namespace http {
                 if(raw_request.has_value()){
                     auto request = parse_req_str(*raw_request);
                     //WARN: Костылирование
-                    std::string method_uri = std::string{request->method} + " " + std::string{request->uri};
-                    if(m_routes.contains(method_uri)){
+                    std::string key { request->method_uri};
+                    if(m_routes.contains(key)){
                         //WARN: костылирование 2
-                        auto res = m_routes.at(method_uri)();
+                        auto res = m_routes.at(key)();
                         peer->send(res);
                     } else {
                         peer->send(
@@ -101,14 +101,14 @@ namespace http {
         if(space1 == std::string_view::npos){
             return std::nullopt;
         }
-        //TODO: поменять на объедеённый
-        req.method = request_line.substr(0, space1);
 
         size_t space2 = data.find(' ', space1 + 1);
         if(space2 == std::string_view::npos){
             return std::nullopt;
         }
-        req.uri = request_line.substr(space1 + 1, space2 - (space1 + 1));
+        //TODO: поменять на объедеённый
+        req.method_uri = request_line.substr(0, space2);
+
         req.ver = request_line.substr(space2 + 1);
 
         size_t end = data.find("\r\n", space2 + 1);

@@ -24,14 +24,14 @@ public:
     Listener(Listener&& src);
     Listener& operator=(Listener&& rhs);
 
-    auto listen() -> void;
-    auto accept() -> std::optional<Acceptor>;
+    void listen();
+    std::optional<Acceptor> accept();
 
-    constexpr auto get_port() const noexcept -> uint16_t {
+    constexpr uint16_t get_port() const noexcept {
         return m_port;
     }
 
-    constexpr auto get_fd() const noexcept -> int32_t {
+    constexpr int32_t get_fd() const noexcept {
         return m_fd;
     }
 
@@ -40,7 +40,7 @@ private:
     uint16_t m_port             = 0;
     std::string m_hostAddr      {"0.0.0.0"};
 
-    [[nodiscard]] auto ntop_(const struct sockaddr_in *sa) const noexcept -> std::string;
-    auto parse_addr_(std::string_view addr) -> void;
+    [[nodiscard]] std::string ntop_(const struct sockaddr_in *sa) const noexcept;
+    void parse_addr_(std::string_view addr);
 };
 } //NAMESPACE NET

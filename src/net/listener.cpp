@@ -76,7 +76,7 @@ namespace net {
         return *this;
     }
 
-    auto Listener::listen() -> void {
+    void Listener::listen() {
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(addr);
         addr.sin_family = AF_INET;
@@ -98,7 +98,7 @@ namespace net {
         std::println("listening on: {}:{}", m_hostAddr, m_port);
     }
 
-    auto Listener::accept() -> std::optional<Acceptor>{
+    auto  Listener::accept() -> std::optional<Acceptor>{
         struct sockaddr_in their_addr;
         socklen_t sin_size = sizeof(their_addr);
         int clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);
@@ -112,7 +112,7 @@ namespace net {
         return std::optional<Acceptor>{clientfd};
     }
 
-    auto Listener::parse_addr_(std::string_view addr) -> void {
+    void Listener::parse_addr_(std::string_view addr) {
         auto colon = addr.find(':');
         if (colon == std::string_view::npos){
             throw std::invalid_argument("invalid address format, missing :");

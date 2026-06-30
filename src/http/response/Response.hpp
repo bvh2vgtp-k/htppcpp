@@ -6,25 +6,25 @@
 namespace http{
     class Response{
         public:
-            auto status(status_code code) noexcept-> Response& {
+            Response& status(status_code code) noexcept {
                 m_code = code;
                 return *this;
             }
 
-            auto type(std::string_view ct) noexcept -> Response& {
+            Response& type(std::string_view ct) noexcept {
                 m_content_type = ct;
                 return *this;
             }
 
-            auto body(std::string_view data) noexcept -> Response& {
+            Response& body(std::string_view data) noexcept {
                 m_body = data;
                 return *this;
             }
 
-            auto build() const -> std::string;
+            std::string build() const;
 
         private:
-            constexpr auto get_status_line() const noexcept -> std::string_view;
+            constexpr std::string_view get_status_line() const noexcept;
 
             status_code m_code = status_code::INTERNAL_ERROR;
             std::string_view m_content_type = "text/plain; charset=utf-8";

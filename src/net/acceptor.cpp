@@ -42,7 +42,7 @@ namespace net {
         return *this;
     }
 
-    auto Acceptor::recv() -> std::optional<std::string_view>{
+    auto Acceptor::recv() -> std::optional<std::string_view> {
         ssize_t size = ::recv(m_clientfd, m_buff.data(), m_buff.size(), 0);
         if(size == 0){
             return std::nullopt;
@@ -53,7 +53,7 @@ namespace net {
         return std::string_view(m_buff.data(), size);
     }
 
-    auto Acceptor::send(std::string_view data) const -> void {
+    void Acceptor::send(std::string_view data) const {
         ssize_t size = ::send(m_clientfd, data.data(), data.size(), 0);
         if(size == -1){
             throw err::socket_error{"send: "};

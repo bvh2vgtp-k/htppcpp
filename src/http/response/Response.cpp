@@ -1,7 +1,7 @@
 #include <http/response/Response.hpp>
 
 namespace http {
-    auto Response::build() const -> std::string {
+    std::string Response::build() const {
         std::string_view status_lie = get_status_line();
         std::string length_str = m_body.empty() ? "" : std::to_string(m_body.size());
 
@@ -29,7 +29,7 @@ namespace http {
     }
 
 
-    constexpr auto Response::get_status_line() const noexcept -> std::string_view {
+    [[nodiscard]] constexpr auto Response::get_status_line() const noexcept -> std::string_view {
         switch (m_code) {
             case http::status_code::OK:          return "HTTP/1.1 200 OK";
             case http::status_code::BAD_REQ:     return "HTTP/1.1 400 Bad Request";

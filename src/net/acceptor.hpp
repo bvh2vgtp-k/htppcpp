@@ -26,10 +26,10 @@ namespace net {
 
         [[nodiscard]] auto recv() -> std::optional<std::string_view>;
 
-        auto send(std::string_view data) const -> void;
+        void send(std::string_view data) const;
 
         [[nodiscard]] auto get_addrstr() const -> std::string;
-        [[nodiscard]] auto get_fd() const noexcept -> int32_t {
+        [[nodiscard]] constexpr auto get_fd() const noexcept -> int32_t {
             return m_clientfd;
         }
 

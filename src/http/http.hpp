@@ -18,16 +18,16 @@ namespace http {
             [[nodiscard]] explicit Server(std::string_view host);
             ~Server();
 
-            auto register_handler(http::Method method, std::string uri, Handler&& fn) -> void;
+            void register_handler(http::Method method, std::string uri, Handler&& fn);
 
-            auto run() -> void;
+            void run();
         private:
             net::Listener m_listenfd;
             std::unordered_map<std::string, Handler> m_routes;
             inline static volatile std::sig_atomic_t m_running = true;
 
+            [[nodiscard]] auto parse_req_str(std::string_view data) const -> std::optional<Request>;
             constexpr auto method_to_str(http::Method method) -> std::string_view;
-            auto parse_req_str(std::string_view data) const -> std::optional<Request>;
             static void sighandler(int) {m_running = false;}
     };
 }

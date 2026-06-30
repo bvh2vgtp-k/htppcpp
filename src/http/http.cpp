@@ -22,7 +22,7 @@ namespace http {
         std::println("\nServer stopped");
     }
 
-    auto Server::run() -> void {
+    void Server::run() {
         m_listenfd.listen();
         while(m_running == true){
             auto peer = m_listenfd.accept();
@@ -51,7 +51,7 @@ namespace http {
         }
     }
 
-    auto Server::register_handler(http::Method method, std::string uri, Handler&& handler) -> void{
+    void Server::register_handler(http::Method method, std::string uri, Handler&& handler) {
         assert(!uri.empty() && uri[0] == '/' && "URI must not be empty and must start with '/'");
         std::string key {method_to_str(method)};
         if(!key.empty()){
@@ -106,7 +106,7 @@ namespace http {
         if(space2 == std::string_view::npos){
             return std::nullopt;
         }
-        //TODO: поменять на объедеённый
+
         req.method_uri = request_line.substr(0, space2);
 
         req.ver = request_line.substr(space2 + 1);

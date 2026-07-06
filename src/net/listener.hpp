@@ -21,17 +21,17 @@ public:
     Listener(const Listener&) = delete;
     Listener& operator=(const Listener&) = delete;
 
-    Listener(Listener&& src);
-    Listener& operator=(Listener&& rhs);
+    Listener(Listener&& src) noexcept;
+    Listener& operator=(Listener&& src) noexcept;
 
     void listen();
-    std::optional<Acceptor> accept();
+    [[nodiscard]] auto accept() const -> std::optional<Acceptor>;
 
-    constexpr uint16_t get_port() const noexcept {
+    [[nodiscard]] constexpr uint16_t get_port() const noexcept {
         return m_port;
     }
 
-    constexpr int32_t get_fd() const noexcept {
+    [[nodiscard]] constexpr int32_t get_fd() const noexcept {
         return m_fd;
     }
 

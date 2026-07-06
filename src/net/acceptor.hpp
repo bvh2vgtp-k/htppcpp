@@ -22,7 +22,7 @@ namespace net {
         Acceptor& operator=(const Acceptor&) = delete;
 
         Acceptor(Acceptor&& src) noexcept;
-        Acceptor& operator=(Acceptor&& rhs) noexcept;
+        Acceptor& operator=(Acceptor&& src) noexcept;
 
         [[nodiscard]] auto recv() -> std::optional<std::string_view>;
 
@@ -36,7 +36,7 @@ namespace net {
 
 
     private:
-        [[nodiscard]] auto ntop_(const sockaddr* sa) const -> std::string;
+        [[nodiscard]] static auto ntop_(const sockaddr* sa) -> std::string;
 
         int32_t m_clientfd = -1;
         size_t m_bytesStored = 0;

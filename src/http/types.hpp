@@ -12,7 +12,7 @@ namespace http {
         DELETE,
     };
 
-    enum class status_code {
+    enum class status_code : uint16_t {
         OK = 200,
         BAD_REQ = 400,
         NOT_FOUND = 404,

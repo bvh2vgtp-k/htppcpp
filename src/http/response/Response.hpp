@@ -21,10 +21,10 @@ namespace http{
                 return *this;
             }
 
-            std::string build() const;
+            [[nodiscard]]std::string build() const;
 
         private:
-            constexpr std::string_view get_status_line() const noexcept;
+            [[nodiscard]] constexpr std::string_view get_status_line() const noexcept;
 
             status_code m_code = status_code::INTERNAL_ERROR;
             std::string_view m_content_type = "text/plain; charset=utf-8";

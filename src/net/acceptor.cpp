@@ -1,3 +1,5 @@
+#include <array>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -70,15 +72,18 @@ namespace net {
         return ntop_(&addr);
     }
 
-    auto Acceptor::ntop_(const sockaddr* sa) const -> std::string {
+    auto Acceptor::ntop_(const sockaddr* sa) -> std::string {
         if(sa == nullptr) return {};
 
         if(sa->sa_family == AF_INET){
-            auto* sin = reinterpret_cast<const sockaddr_in*>(sa);
+            const auto* sin = reinterpret_cast<const sockaddr_in*>(sa);
+            std::array<char, INET_ADDRSTRLEN> buffer;
 
-            char s[INET_ADDRSTRLEN];
-            const char* dst = inet_ntop(AF_INET, &sin->sin_addr, s, INET_ADDRSTRLEN);
-            return dst ? std::string{dst} : std::string{};
+            const char* dst = inet_ntop(AF_INET, &sin->sin_addr, buffer.data(), INET_ADDRSTRLEN);
+            if(dst == nullptr) {
+                return {};
+            }
+            return std::string{dst};
         }
         return {};
     }

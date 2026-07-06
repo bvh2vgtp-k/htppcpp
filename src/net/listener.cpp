@@ -55,13 +55,13 @@ namespace net {
         }
     }
 
-    Listener::Listener(Listener&& src) {
+    Listener::Listener(Listener&& src) noexcept {
         m_fd = std::exchange(src.m_fd, -1);
         m_port = std::exchange(src.m_port, 0);
         m_hostAddr = std::move(src.m_hostAddr);
     }
 
-    Listener& Listener::operator=(Listener&& src) {
+    Listener& Listener::operator=(Listener&& src) noexcept {
         if(this != &src){
             if(m_fd != -1){
                 ::close(m_fd);
@@ -98,7 +98,7 @@ namespace net {
         std::println("listening on: {}:{}", m_hostAddr, m_port);
     }
 
-    auto  Listener::accept() -> std::optional<Acceptor>{
+    auto Listener::accept() const -> std::optional<Acceptor>{
         struct sockaddr_in their_addr;
         socklen_t sin_size = sizeof(their_addr);
         int clientfd = ::accept(m_fd, (struct sockaddr*)&their_addr, &sin_size);

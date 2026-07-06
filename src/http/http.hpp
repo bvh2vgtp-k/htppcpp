@@ -18,7 +18,7 @@ namespace http {
             [[nodiscard]] explicit Server(std::string_view host);
             ~Server();
 
-            void register_handler(http::Method method, std::string uri, Handler&& fn);
+            void register_handler(http::Method method, std::string uri, Handler&& handler);
 
             void run();
         private:
@@ -26,8 +26,8 @@ namespace http {
             std::unordered_map<std::string, Handler> m_routes;
             inline static volatile std::sig_atomic_t m_running = true;
 
-            [[nodiscard]] auto parse_req_str(std::string_view data) const -> std::optional<Request>;
-            constexpr auto method_to_str(http::Method method) -> std::string_view;
+            [[nodiscard]] static auto parse_req_str(std::string_view data) -> std::optional<Request>;
+            static constexpr auto method_to_str(http::Method method) -> std::string_view;
             static void sighandler(int) {m_running = false;}
     };
 }

@@ -1,15 +1,18 @@
 #include <http/response/Response.hpp>
 
 namespace http {
+    constexpr size_t CONTENT_LENGTH_KEY = 14;
+    constexpr size_t CONNETCION_KEEP_ALIVE = 26;
+
     std::string Response::build() const {
         std::string_view status_lie = get_status_line();
         std::string length_str = m_body.empty() ? "" : std::to_string(m_body.size());
 
         size_t total_size = status_lie.size() + 2; // \r\n
         if(!m_content_type.empty()){
-            total_size += 14 + m_content_type.size() + 2; //content-length: + \r\n
+            total_size += CONTENT_LENGTH_KEY + m_content_type.size() + 2; //content-length: + \r\n
         }
-        total_size += 26; // connection: keep-alive\r\n\r\n
+        total_size += CONNETCION_KEEP_ALIVE; // connection: keep-alive\r\n\r\n
         total_size += m_body.size();
 
         std::string res;

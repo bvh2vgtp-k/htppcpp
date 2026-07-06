@@ -5,7 +5,7 @@
 
 namespace err{
 
-class socket_error : public std::exception
+class socket_error: public std::exception
 {
 public:
 	explicit socket_error(std::string msg)
@@ -13,8 +13,8 @@ public:
 		{
 			m_msg = m_msg + ec.message();
 		}
-	virtual ~socket_error() noexcept override {};
-	virtual const char* what() const noexcept override{
+	virtual ~socket_error() noexcept override = default;
+	[[nodiscard]] virtual const char* what() const noexcept override{
 		return m_msg.c_str();
 	}
 private:

@@ -24,7 +24,7 @@ namespace http {
 
     void Server::run() {
         m_listenfd.listen();
-        while(m_running == true){
+        while(static_cast<bool>(m_running)){
             auto peer = m_listenfd.accept();
             if(peer.has_value()) {
                 std::println("got connection from: {}", peer->get_addrstr());
@@ -77,7 +77,7 @@ namespace http {
         }
     }
 
-    auto Server::parse_req_str(std::string_view data) const -> std::optional<Request> {
+    auto Server::parse_req_str(std::string_view data) -> std::optional<Request> {
         /*вообще можно expected возрващать с конкретным чемто*/
         Request req;
 

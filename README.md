@@ -28,11 +28,13 @@ Register handler with required method and URI
 Project is using CMake, but works only with Linux sockets so it can only run on Linux
 ### Linux 
 
-Two build types are available. (You can also build in release) 
+1. Choose preset debug/release
 ```sh
 #debug build with sanitizers and stuff
 cmake --preset debug 
-
+```
+2. Build the project
+```sh
 cmake --build --preset debug
 ```
 

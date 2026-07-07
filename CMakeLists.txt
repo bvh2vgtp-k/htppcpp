@@ -34,6 +34,12 @@ target_compile_options(compiler_flags INTERFACE
     >
 )
 
+target_link_options(compiler_flags INTERFACE
+    $<$<CONFIG:Debug>:
+        -fsanitize=undefined,address
+    >
+)
+
 target_compile_options(compiler_flags INTERFACE
     $<$<CONFIG:Release>:
         -O3

@@ -25,7 +25,7 @@ Register handler with required method and URI
 
 
 ## Building
-Project is using CMake, but works only with Linux sockets so you can really use it on Windows or BSD or Mac or whatever 
+Project is using CMake, but works only with Linux sockets so it can only run on Linux
 ### Linux 
 
 Two build types are available. (You can also build in release) 

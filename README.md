@@ -1,5 +1,5 @@
 # SIMPLE HTTP/1.1 Server in c++
-Implementation of a simple HTTP/1.1 server using modern c++
+Implementation of a simple HTTP/1.1 server using modern c++. This project is more like a library interface for creating http servers
 ## Features
 * HTTP/1.1 request handling 
 * Using c++23 standard 
@@ -24,20 +24,20 @@ Register handler with required method and URI
 ```
 
 
-## Getting started 
+## Building
 Project is using CMake, but works only with Linux sockets so you can really use it on Windows or BSD or Mac or whatever 
 ### Linux 
 
-Two build types are available
+Two build types are available. (You can also build in release) 
 ```sh
-cmake -B build -DCMAKE_BUILD_TYPE=Debug   
-cmake -B build -DCMAKE_BUILD_TYPE=Release 
+#debug build with sanitizers and stuff
+cmake --preset debug 
 
-cmake --build build 
+cmake --build --preset debug
 ```
 
 Run the executable 
 ```sh
-./build/httpsrv
+./build/debug/httpsrv
 ```
 
